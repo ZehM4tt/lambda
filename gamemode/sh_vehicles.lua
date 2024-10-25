@@ -18,24 +18,123 @@ local VEHICLE_MIN_DESPAWN_DIST = 5000
 
 if SERVER then
     AddCSLuaFile()
+
+    local function IsSupportedVehicle(entData)
+        local className = entData["classname"]
+        if className == nil then
+            return false
+        end
+        if className == "prop_vehicle_airboat" then
+            return true
+        elseif className == "prop_vehicle_jeep" and entData["model"] == "models/buggy.mdl" then
+            return true
+        elseif className == "prop_vehicle_jeep" and entData["model"] == "models/vehicle.mdl" then
+            return true
+        end
+        return false
+    end
+
+    -- Check if the map has logic_auto that would create a vehicle.
+    local function IsMapStartCreatingVehicle()
+        local mapdata = game.GetMapData()
+
+        local function getTableEntry(tab, key)
+            -- We look for the key, case insensitive.
+            for k, v in pairs(tab) do
+                if string.lower(k) == string.lower(key) then
+                    return v
+                end
+            end
+            return nil
+        end
+
+        local function isTemplateTargetVehicle(targetName)
+            local targetInfo = game.FindEntityInMapData(targetName)
+            if targetInfo == nil then
+                return false
+            end
+            return IsSupportedVehicle(targetInfo)
+        end
+
+        local function pointTemplateContainsVehicle(entData)
+            for i = 1, 16 do
+                local templateName = getTableEntry(entData, "template" .. string.format("%02d", i))
+                if templateName ~= nil and isTemplateTargetVehicle(templateName) then
+                    return true
+                end
+            end
+            return false
+        end
+
+        local function isSpawningVehicle(targetName, inputName)
+            local targetInfo = game.FindEntityInMapData(targetName)
+            if targetInfo == nil then
+                return false
+            end
+            if targetInfo["classname"] ~= nil then
+                if targetInfo["classname"] == "point_template" and inputName == "ForceSpawn" then
+                    -- Check if one of the templates point to one of the vehicles.
+                    if pointTemplateContainsVehicle(targetInfo) then
+                        return true
+                    end
+                elseif targetInfo["classname"] == "env_entity_maker" and inputName == "ForceSpawn" then
+                    local templateName = getTableEntry(targetInfo, "EntityTemplate")
+                    if templateName ~= nil then
+                        local templateInfo = game.FindEntityInMapData(templateName)
+                        if templateInfo ~= nil and pointTemplateContainsVehicle(templateInfo) then
+                            return true
+                        end
+                    end
+                end
+            end
+            return false
+        end
+
+        for _, entData in pairs(mapdata.Entities) do
+            if entData["classname"] == "logic_auto" then
+                local onNewGame = getTableEntry(entData, "onnewgame")
+                if onNewGame ~= nil then
+                    if not istable(onNewGame) then
+                        -- Turn to table.
+                        onNewGame = {onNewGame}
+                    end
+                    -- Check the outputs
+                    for _, v in pairs(onNewGame) do
+                        local outputData = string.Explode(",", v)
+                        if isSpawningVehicle(outputData[1], outputData[2]) then
+                            return true
+                        end
+                    end
+                end
+            end
+        end
+
+        return false
+    end
+
     function GM:InitializeMapVehicles()
         DbgPrint("InitializeMapVehicles")
-        -- Because autoreload..
+
         self.ActiveVehicles = {}
         self.MapVehicles = {}
         self.SpawnPlayerVehicles = true
         self.NextVehicleThink = 0
+        self.VehicleCheckpoint = nil
+
+        if IsMapStartCreatingVehicle() then
+            self.DeferredVehicleCreation = false
+            DbgPrint("First vehicle created at the start of the map.")
+        else
+            self.DeferredVehicleCreation = true
+            DbgPrint("Map does not create vehicles at the start, deferring vehicle creation.")
+        end
 
         -- NOTE: We rely on the first vehicle spawn, this method is unreliable as in ep2_outland_09 
         -- the vehicle is spawned later rather than at the start of the map.
-        if false then
+        if self.DeferredVehicleCreation == false then
             local mapdata = game.GetMapData()
             for _, v in pairs(mapdata.Entities) do
-                if v["classname"] == "prop_vehicle_airboat" then
-                    table.insert(self.MapVehicles, v)
-                elseif v["classname"] == "prop_vehicle_jeep" and v["model"] == "models/buggy.mdl" then
-                    table.insert(self.MapVehicles, v)
-                elseif v["classname"] == "prop_vehicle_jeep" and v["model"] == "models/vehicle.mdl" then
+                if IsSupportedVehicle(v) then
                     table.insert(self.MapVehicles, v)
                 end
             end
@@ -59,8 +158,8 @@ if SERVER then
             self:PlayerSetVehicleOwned(v, nil)
         end
 
-        self.MapVehicles = {}
         self:ResetVehicleCheck()
+        self:InitializeMapVehicles()
     end
 
     function GM:ResetVehicleCheck()
@@ -125,13 +224,15 @@ if SERVER then
                 return
             end
 
-            if vehicle:GetName() ~= "" and vehicle.VehicleIsCloned ~= true then
-                -- We have a map creation ID, we can use this to determine the vehicle type.
-                local mapdata = game.GetMapData()
-                for _, v in pairs(mapdata.Entities) do
-                    if v["targetname"] == vehicle:GetName() then
-                        DbgPrint("New vehicle on map: " .. tostring(v["classname"]))
-                        table.insert(self.MapVehicles, v)
+            if self.DeferredVehicleCreation == true then
+                if vehicle:GetName() ~= "" and vehicle.VehicleIsCloned ~= true then
+                    -- We have a map creation ID, we can use this to determine the vehicle type.
+                    local mapdata = game.GetMapData()
+                    for _, v in pairs(mapdata.Entities) do
+                        if v["targetname"] == vehicle:GetName() then
+                            DbgPrint("New vehicle on map: " .. tostring(v["classname"]))
+                            table.insert(self.MapVehicles, v)
+                        end
                     end
                 end
             end
