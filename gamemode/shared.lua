@@ -3,6 +3,7 @@ if SERVER then
 end
 
 DEFINE_BASECLASS("gamemode_base")
+include("sh_compatibility.lua")
 include("sh_lambda_build.lua")
 include("sh_debug.lua")
 include("sh_convars.lua")
