@@ -6,26 +6,7 @@ local CurTime = CurTime
 local Vector = Vector
 local math = math
 local IsValid = IsValid
-local engine = engine
 --local DbgPrint = GetLogging("Animation")
-local engineTick = engine.TickInterval()
-
-local function GetPlayerVelocity(ply, velocity)
-    if CLIENT and ply ~= LocalPlayer() then
-        velocity = ply:GetNWVector("LambdaVelocity", velocity)
-        ply.InterpolatedVelocity = ply.InterpolatedVelocity or Vector(0, 0, 0)
-
-        if velocity:Distance(ply.InterpolatedVelocity) > 10 then
-            ply.InterpolatedVelocity = velocity
-        else
-            ply.InterpolatedVelocity = LerpVector(engineTick * 2.0, ply.InterpolatedVelocity, velocity)
-        end
-
-        return ply.InterpolatedVelocity
-    end
-
-    return velocity
-end
 
 function GM:HandlePlayerJumping(ply, velocity)
     if (ply:GetMoveType() == MOVETYPE_NOCLIP) then
@@ -203,7 +184,6 @@ Name: gamemode:UpdateAnimation()
 Desc: Animation updates (pose params etc) should be done here
 -----------------------------------------------------------]]
 function GM:UpdateAnimation(ply, velocity, maxseqgroundspeed)
-    velocity = GetPlayerVelocity(ply, velocity)
     local len = velocity:Length()
     local movement = len / maxseqgroundspeed
     local rate = math.min(movement, 2)
@@ -285,7 +265,6 @@ end
 function GM:CalcMainActivity(ply, velocity)
     ply.CalcIdeal = ACT_MP_STAND_IDLE
     ply.CalcSeqOverride = -1
-    velocity = GetPlayerVelocity(ply, velocity)
     self:HandlePlayerLanding(ply, velocity, ply.m_bWasOnGround)
     local isHandled = self:HandlePlayerNoClipping(ply, velocity) or self:HandlePlayerDriving(ply) or self:HandlePlayerVaulting(ply, velocity) or self:HandlePlayerJumping(ply, velocity) or self:HandlePlayerSwimming(ply, velocity) or self:HandlePlayerDucking(ply, velocity)
 
