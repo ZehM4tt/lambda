@@ -1349,7 +1349,6 @@ function GM:PlayerTick(ply, mv)
         self:LimitPlayerAmmo(ply)
         self:PlayerCheckDrowning(ply)
         if ply:GetNWBool("LambdaHEVSuit", false) ~= ply:IsSuitEquipped() then ply:SetNWBool("LambdaHEVSuit", ply:IsSuitEquipped()) end
-        ply:SetNWVector("LambdaVelocity", ply:GetVelocity())
     end
 end
 
