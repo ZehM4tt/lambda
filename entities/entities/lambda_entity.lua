@@ -302,6 +302,15 @@ function ENT:SetInputFunction(input, fnc)
     self.InputsTable[input] = fnc
 end
 
+local function NormalizeOutputParams(params)
+    local normalized = params
+    -- Old style and also Hammer disallows comma.
+    normalized = string.Replace(normalized, ":", ",")
+    -- Newer source games according to Rubat use this instead of comma.
+    normalized = string.Replace(normalized, "\x1B", ",")
+    return normalized
+end
+
 function ENT:KeyValue(name, val)
     DbgPrint(self, "KeyValue", name, val)
 
@@ -311,7 +320,8 @@ function ENT:KeyValue(name, val)
     end
 
     if self.OutputsTable[name] ~= nil then
-        local params = string.Explode(",", string.Trim(val), false)
+        local normalized = NormalizeOutputParams(val)
+        local params = string.Explode(",", string.Trim(normalized), false)
         local target = params[1]
         local input = params[2]
         local param = params[3]
