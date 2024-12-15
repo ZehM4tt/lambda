@@ -40,14 +40,25 @@ if SERVER then
     end
 
     function PLAYER_META:ChangeSpectateMode()
+
+        local mode = self:GetSpectateMode()
         local target = self:GetObserverTarget()
 
-        if self:GetSpectateMode() == 5 then
-            self:SetObserverMode(4)
-            self:SetupHands(target)
-        elseif self:GetSpectateMode() == 4 then
+        -- Third person
+        if mode == 4 then
             self:SetObserverMode(5)
             self:SetupHands(nil)
+
+        -- Free Roaming
+        elseif mode == 5 then
+            self:SetObserverMode(6)
+            self:SetupHands(nil)
+
+        -- First person
+        elseif mode == 6 then
+            self:SetObserverMode(4)
+            self:SetupHands(target)
+
         end
     end
 
