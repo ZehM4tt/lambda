@@ -110,17 +110,26 @@ function SWEP:OnRemove()
     DbgPrint(self, "OnRemove")
 end
 
+local TRACE_HULL_MINS = Vector(-1, -1, -1)
+local TRACE_HULL_MAXS = Vector(1, 1, 1)
+
 function SWEP:GetActorForHealing()
     local owner = self:GetOwner()
     local startPos = owner:GetShootPos()
     local endPos = startPos + (owner:GetAimVector() * TRACE_LEN)
 
-    local tr = util.TraceLine({
+    local tr = util.TraceHull({
         start = startPos,
         endpos = endPos,
-        mask = MASK_SHOT,
+        mins = TRACE_HULL_MINS,
+        maxs = TRACE_HULL_MAXS,
+        mask = MASK_SHOT_HULL,
         filter = owner
     })
+
+    if SERVER then
+        PrintTable(tr)
+    end
 
     if tr.Hit == true and IsValid(tr.Entity) and (tr.Entity:IsPlayer() or tr.Entity:IsNPC()) then return tr.Entity end
 
@@ -133,12 +142,13 @@ function SWEP:GetActorForReviving()
     local startPos = owner:GetShootPos()
     local endPos = startPos + (owner:GetAimVector() * TRACE_LEN)
 
-    local tr = util.TraceLine({
+    local tr = util.TraceHull({
         start = startPos,
         endpos = endPos,
-        filter = owner,
-        collisiongroup = COLLISION_GROUP_NONE,
-        mask = MASK_SHOT
+        mins = TRACE_HULL_MINS * 5,
+        maxs = TRACE_HULL_MAXS * 5,
+        mask = MASK_SHOT_HULL,
+        filter = owner
     })
 
     if IsValid(tr.Entity) and tr.Entity:IsRagdoll() then
