@@ -4,6 +4,7 @@
 - Fixed: ep1_c17_00a: Don't cancel scripted_sequence on player death.
 - Fixed: Weapons not properly transitioning for NPCs.
 - Fixed: Entity outputs not firing in the correct order.
+- Fixed: Weapons don't respawn at where they were first picked up.
 
 0.9.25
 - Improved: Hints will no longer show duplicates, instead it will renew the existing hint that has the same text.
