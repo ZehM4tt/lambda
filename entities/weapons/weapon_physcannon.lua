@@ -47,7 +47,7 @@ SWEP.IconFont = "WeaponIconsSelected"
 SWEP.IconLetter = "m"
 if CLIENT then
     SWEP.Slot = 0
-    SWEP.SlotPos = 2
+    SWEP.SlotPos = 3
     SWEP.DrawAmmo = false
     SWEP.DrawCrosshair = true
     SWEP.DrawWeaponInfoBox = false
