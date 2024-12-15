@@ -110,6 +110,9 @@ function GM:RespawnObject(obj, options)
         data.outputs = table.Copy(obj.EntityOutputs or {})
     else
         data = table.Copy(data)
+        -- Override pos and ang, some weapons are moved or thrown at the player.
+        data.pos = obj:GetPos()
+        data.ang = obj:GetAngles()
         data.levelDesignerPlaced = true
         data.options = options
     end
