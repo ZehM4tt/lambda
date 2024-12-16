@@ -1,8 +1,8 @@
 0.9.26 (in development)
-- Added "Free-Roaming" mode when spectating
 - Improved: Going in and out of the settings no longer clips into the player model.
 - Improved: The medkit now uses the player hull to detect who to heal, revive uses now hull trace.
 - Improved: Added some effects to the medkit to signal its current energy level.
+- Added: "Free-Roaming" mode when spectating.
 - Fixed: NPC makers not respecting the spawn frequency -1 causing a lot of NPCs being spawned in some cases.
 - Fixed: ep1_c17_00a: Don't cancel scripted_sequence on player death.
 - Fixed: Weapons not properly transitioning for NPCs.
