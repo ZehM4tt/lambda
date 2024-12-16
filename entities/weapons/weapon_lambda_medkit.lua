@@ -49,13 +49,19 @@ game.AddAmmoType({
 local TRACE_LEN = 76
 local HEAL_AMOUNT = 10
 local REVIVE_AMOUNT = 50
+
 local STATE_IDLE = 0
 local STATE_CHARGING = 1
-local RECHARGE_DELAY = 3
-local RECHARGE_AMOUNT = 5
+local STATE_RECHARGING = 2
+
+local RECHARGE_DELAY = 0.001
+local RECHARGE_AMOUNT = 0.025
+local RECHARGE_TARGET = 100
+
 local HEAL_DELAY = 0.5
 local PLAYER_HULL_MINS = Vector(-16, -16, 0)
 local PLAYER_HULL_MAXS = Vector(16, 16, 72)
+local CUSTOM_MAT_NAME = "LambdaMedKitMat" .. math.random(1, 1000)
 
 --
 -- ConVars
@@ -79,31 +85,64 @@ function SWEP:Initialize()
     self:Precache()
     self:SetHoldType(self.HoldType)
     self.AmmoID = game.GetAmmoID(self.Primary.Ammo)
-
     if SERVER then
-        self:SetEnergy(100)
+        self:SetEnergy(RECHARGE_TARGET)
         self:SetNextRechargeTime(CurTime() + RECHARGE_DELAY)
+    else
+        -- For interpolation.
+        self.EnergyLevel = RECHARGE_TARGET
+        self.ChargeBlink = 0
+
+        hook.Add("PreDrawPlayerHands", self, self.PreDrawPlayerHands)
+        hook.Add("PostDrawPlayerHands", self, self.PostDrawPlayerHands)
     end
 end
 
 function SWEP:Think()
     local owner = self:GetOwner()
 
-    if IsValid(owner) and owner:KeyDown(IN_ATTACK2) == false and self:GetState() ~= STATE_IDLE then
+    if IsValid(owner) and owner:KeyDown(IN_ATTACK2) == false and not self:IsCurrentlyIdle() then
         self:StopCharging()
     end
+end
+
+function SWEP:Recharge()
+    if CurTime() < self:GetNextRechargeTime() then
+        return
+    end
+    self:SetNextRechargeTime(CurTime() + RECHARGE_DELAY)
+
+    local currentEnergy = self:GetEnergy()
+    local energy = math.Clamp(currentEnergy + RECHARGE_AMOUNT, 0, RECHARGE_TARGET)
+    self:SetEnergy(energy)
+
+    if energy >= RECHARGE_TARGET then
+        self:SetState(STATE_IDLE)
+        self:EmitSound("buttons/button18.wav", 50, 250, 0.2)
+        self.ChargeBlink = 1000
+        return
+    end
+end
+
+function SWEP:StartRecharging()
+    if self:GetState() == STATE_RECHARGING then
+        return
+    end
+    self:SetState(STATE_RECHARGING)
+    self:SetNextRechargeTime(CurTime() + 1)
+    DbgPrint("Starting recharge")
 end
 
 -- Ugly hack, SWEP.Think is not what it seems.
 function SWEP:PredictedThink()
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
-    -- Only recharge in idle state.
-    if self:GetState() ~= STATE_IDLE then return end
-    if CurTime() < self:GetNextRechargeTime() then return end
-    self:SetNextRechargeTime(CurTime() + RECHARGE_DELAY)
-    local energy = math.Clamp(self:GetEnergy() + RECHARGE_AMOUNT, 0, 100)
-    self:SetEnergy(energy)
+    local state = self:GetState()
+    if state == STATE_IDLE then
+        return
+    elseif state == STATE_RECHARGING then
+        self:Recharge()
+    end
 end
 
 function SWEP:OnRemove()
@@ -126,10 +165,6 @@ function SWEP:GetActorForHealing()
         mask = MASK_SHOT_HULL,
         filter = owner
     })
-
-    if SERVER then
-        PrintTable(tr)
-    end
 
     if tr.Hit == true and IsValid(tr.Entity) and (tr.Entity:IsPlayer() or tr.Entity:IsNPC()) then return tr.Entity end
 
@@ -158,10 +193,13 @@ function SWEP:GetActorForReviving()
     return ragdoll
 end
 
-function SWEP:CanPrimaryAttack()
-    if self:GetState() ~= STATE_IDLE then return false end
+function SWEP:IsCurrentlyIdle()
+    local currentState = self:GetState()
+    return currentState == STATE_IDLE or currentState == STATE_RECHARGING
+end
 
-    return true
+function SWEP:CanPrimaryAttack()
+    return self:IsCurrentlyIdle()
 end
 
 function SWEP:CanHealActor(actor)
@@ -312,7 +350,9 @@ function SWEP:PrimaryAttack()
     self:ConsumeEnergy(healAmount)
     self:SetNextPrimaryFire(CurTime() + HEAL_DELAY)
     self:SetNextSecondaryFire(CurTime() + HEAL_DELAY)
+    self:SetNextRechargeTime(CurTime() + 2)
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+    self:StartRecharging()
     local owner = self:GetOwner()
     owner:SetAnimation(PLAYER_ATTACK1)
 end
@@ -367,7 +407,7 @@ function SWEP:StopChargeSound()
 end
 
 function SWEP:StartCharging()
-    if self:GetState() ~= STATE_IDLE then return end
+    if not self:IsCurrentlyIdle() then return end
     self:SetChargeEnergy(0.0)
     self:EmitChargingSound()
     self:SetState(STATE_CHARGING)
@@ -376,7 +416,7 @@ end
 
 function SWEP:StopCharging()
     self:StopChargeSound()
-    self:SetState(STATE_IDLE)
+    self:StartRecharging()
     self:SetChargeEnergy(0.0)
     self:SetNextSecondaryFire(CurTime() + 0.5)
 end
@@ -385,7 +425,9 @@ function SWEP:UpdateCharging()
     local current = self:GetChargeEnergy()
     current = current + CHARGE_AMOUNT
     self:SetChargeEnergy(current)
-    if current >= REVIVE_AMOUNT then return self:ReleaseCharge() end
+    if current >= REVIVE_AMOUNT then
+        return self:ReleaseCharge()
+    end
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
     self:SetNextSecondaryFire(CurTime() + STEP_TIME)
 end
@@ -406,7 +448,7 @@ function SWEP:ReleaseCharge()
         self:SetNextPrimaryFire(CurTime() + 1)
         self:SetNextSecondaryFire(CurTime() + 1)
         self:StopCharging()
-
+        self:StartRecharging()
         return
     end
 
@@ -417,6 +459,8 @@ function SWEP:ReleaseCharge()
     self:SetNextPrimaryFire(CurTime() + 1)
     self:SetNextSecondaryFire(CurTime() + 1)
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+    self:StartRecharging()
+
     local owner = self:GetOwner()
     owner:SetAnimation(PLAYER_ATTACK1)
     local ragdollOwner = ragdoll:GetOwner()
@@ -498,14 +542,13 @@ function SWEP:SecondaryAttack()
         self:SetNextSecondaryFire(CurTime() + HEAL_DELAY)
         self:DryFire()
         self:StopCharging()
-        self:SetState(STATE_IDLE)
-
+        self:StartRecharging()
         return
     end
 
     local currentState = self:GetState()
 
-    if currentState == STATE_IDLE then
+    if self:IsCurrentlyIdle() then
         self:StartCharging()
     elseif currentState == STATE_CHARGING then
         self:UpdateCharging()
@@ -539,6 +582,67 @@ end
 
 function SWEP:DrawWorldModelTranslucent()
     self:DrawModel()
+end
+
+function SWEP:PreDrawViewModel(vm, wep, ply)
+    -- Update the glow based on energy.
+    local energy = self:GetEnergy() - self:GetChargeEnergy()
+    self.EnergyLevel = math.Approach(self.EnergyLevel or 0, energy, FrameTime() * 100)
+
+    self.ChargeBlink = math.Approach(self.ChargeBlink, 0, FrameTime() * 350)
+    local glow = math.Clamp(self.EnergyLevel / 100, 0, 1)
+    local c = Color(0, 255, 0, 255)
+    c.r = (255 * (1 - glow)) * 1
+    c.g = ((1000 * glow) - (c.r * 0.8))
+    c.b = self.ChargeBlink
+
+    -- Pulse the glow.
+    local pulse = math.abs(math.sin(CurTime() * 2) * 255) / 500
+    pulse = pulse + 0.2
+    c.r = c.r * pulse
+    c.g = c.g * pulse
+
+    if self.Mat == nil then
+        local oldMat = vm:GetMaterials()
+        if oldMat == nil or #oldMat == 0 then
+            self.Mat = false
+            return
+        end
+        local oldMatFile = oldMat[1]
+
+        local fileData = file.Read("materials/" .. oldMatFile .. ".vmt", "GAME")
+        if fileData == nil then
+            self.Mat = false
+            return
+        end
+
+        local matData = util.KeyValuesToTable(fileData, false, true)
+        if matData == nil then
+            self.Mat = false
+            return
+        end
+
+        -- Copy the material.
+        self.Mat = CreateMaterial(CUSTOM_MAT_NAME, "VertexLitGeneric", matData)
+    end
+
+    if self.Mat then
+        self.Mat:SetVector("$selfillumtint", Vector(c.r / 255, c.g / 255, c.b / 255))
+    end
+
+    render.MaterialOverride(self.Mat)
+end
+
+function SWEP:PostDrawViewModel(vm, wep, ply)
+    render.MaterialOverride(nil)
+end
+
+function SWEP:PreDrawPlayerHands(hands, vm, ply, wep)
+    render.MaterialOverride(nil)
+end
+
+function SWEP:PostDrawPlayerHands(hands, vm, ply, wep)
+    render.MaterialOverride(nil)
 end
 
 function SWEP:Ammo1()
