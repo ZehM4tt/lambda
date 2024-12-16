@@ -1,4 +1,4 @@
-0.9.26 (in development)
+0.9.26
 - Improved: Going in and out of the settings no longer clips into the player model.
 - Improved: The medkit now uses the player hull to detect who to heal, revive uses now hull trace.
 - Improved: Added some effects to the medkit to signal its current energy level.
