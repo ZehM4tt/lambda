@@ -28,12 +28,13 @@ jobs:
         sudo apt install dotnet6
     - name: Fetch DepotDownloader
       run: |
-        wget https://github.com/SteamRE/DepotDownloader/releases/download/DepotDownloader_2.5.0/depotdownloader-2.5.0.zip
-        unzip depotdownloader-2.5.0.zip -d tools
+        wget https://github.com/SteamRE/DepotDownloader/releases/download/DepotDownloader_2.7.4/DepotDownloader-linux-x64.zip
+        unzip DepotDownloader-linux-x64.zip -d tools
     - name: Fetch GMAD
       run: |
         echo "bin/gmad_linux" > gmad_files.txt
-        dotnet ./tools/DepotDownloader.dll -app 4020 -depot 4023 -filelist gmad_files.txt -dir gmod
+        chmod +x ./tools/DepotDownloader
+        ./tools/DepotDownloader -app 4020 -depot 4023 -filelist gmad_files.txt -dir gmod
         chmod +x ./gmod/bin/gmad_linux
     - name: Prepare package
       run: |
