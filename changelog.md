@@ -1,4 +1,5 @@
 0.9.26 (in development)
+- Added "Free-Roaming" mode when spectating
 - Improved: Going in and out of the settings no longer clips into the player model.
 - Improved: The medkit now uses the player hull to detect who to heal, revive uses now hull trace.
 - Improved: Added some effects to the medkit to signal its current energy level.
