@@ -543,16 +543,18 @@ local function ReplaceFuncTankVolume(ent, volname)
     return newName
 end
 
-local function CheckScriptedSequence(ent)
+function GM:CheckScriptedSequence(ent)
     if not IsValid(ent) then return end
     local val = ent:GetInternalVariable("onplayerdeath")
     if tonumber(val) ~= 1 then
         return
     end
-    local msg = "Found scripted_sequence with onplayerdeath set to " .. tostring(val) .. ": " .. tostring(ent) .. " (" .. ent:GetName() .. ")"
-    msg = msg .. " at " .. tostring(ent:GetPos()) .. " for map " .. game.GetMap()
-    msg = msg .. "\nIf you see this message please submit a new issue on https://github.com/GMLambda/Lambda/issues\n"
-    ErrorNoHalt(msg)
+    if self.MapScript then
+        local msg = "Found scripted_sequence with onplayerdeath set to " .. tostring(val) .. ": " .. tostring(ent) .. " (" .. ent:GetName() .. ")"
+        msg = msg .. " at " .. tostring(ent:GetPos()) .. " for map " .. game.GetMap()
+        msg = msg .. "\nIf you see this message please submit a new issue on https://github.com/GMLambda/Lambda/issues\n"
+        ErrorNoHalt(msg)
+    end
 end
 
 function GM:EntityKeyValue(ent, key, val)
@@ -620,7 +622,7 @@ function GM:EntityKeyValue(ent, key, val)
         if key == "onplayerdeath" and entClass == "scripted_sequence" and tostring(val) ~= "0" then
             -- Delay this check to make sure the map script had time to run.
             timer.Simple(1, function()
-                CheckScriptedSequence(ent)
+                self:CheckScriptedSequence(ent)
             end)
         end
     end
