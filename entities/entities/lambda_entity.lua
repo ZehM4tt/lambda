@@ -304,8 +304,6 @@ end
 
 local function NormalizeOutputParams(params)
     local normalized = params
-    -- Old style and also Hammer disallows comma.
-    normalized = string.Replace(normalized, ":", ",")
     -- Newer source games according to Rubat use this instead of comma.
     normalized = string.Replace(normalized, "\x1B", ",")
     return normalized
