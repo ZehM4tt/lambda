@@ -1,4 +1,5 @@
 0.9.27 (in development)
+- Fixed: Entity inputs/outputs are parsed incorrect.
 
 0.9.26
 - Improved: Going in and out of the settings no longer clips into the player model.
