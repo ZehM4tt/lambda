@@ -30,7 +30,8 @@ MAPSCRIPT.EntityFilterByClass = {}
 
 MAPSCRIPT.EntityFilterByName = {
     ["player_items_template"] = true,
-    ["pclip_gate1"] = true
+    ["turretroom_playerclipbrush"] = true,
+    ["pclip_gate1"] = true,
 }
 
 function MAPSCRIPT:PostInit()
