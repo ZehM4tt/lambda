@@ -1,4 +1,5 @@
 0.9.28 (in development)
+- Fixed: d2_prison_05 not removing default spawn items.
 
 0.9.27
 - Fixed: Entity inputs/outputs are parsed incorrect.

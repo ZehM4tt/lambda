@@ -27,6 +27,7 @@ MAPSCRIPT.EntityFilterByClass = {}
 
 MAPSCRIPT.EntityFilterByName = {
     ["global_newgame_template_local_items"] = true,
+    ["global_newgame_template_base_items"] = true,
     ["global_newgame_template_ammo"] = true
 }
 
