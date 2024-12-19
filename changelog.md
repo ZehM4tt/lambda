@@ -1,4 +1,6 @@
-0.9.27 (in development)
+0.9.28 (in development)
+
+0.9.27
 - Fixed: Entity inputs/outputs are parsed incorrect.
 
 0.9.26
