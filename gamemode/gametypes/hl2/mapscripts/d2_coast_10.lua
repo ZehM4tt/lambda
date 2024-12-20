@@ -23,7 +23,9 @@ MAPSCRIPT.DefaultLoadout = {
 }
 
 MAPSCRIPT.EntityFilterByName = {
-    ["player_spawn_items"] = true
+    ["player_spawn_items"] = true,
+    ["fall_trigger"] = true,
+    ["fade_fall"] = true,
 }
 
 MAPSCRIPT.ImportantPlayerNPCNames = {

@@ -1,6 +1,7 @@
 0.9.28 (in development)
 - Fixed: d2_prison_05: Not removing default spawn items.
 - Fixed: d3_c17_07: Player clip blocking other players at the start of the map.
+- Fixed: d2_coast_10: Fade to black when jumping into the water.
 
 0.9.27
 - Fixed: Entity inputs/outputs are parsed incorrect.
