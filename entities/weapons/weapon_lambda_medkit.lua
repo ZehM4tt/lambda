@@ -25,7 +25,7 @@ SWEP.ViewModel = "models/weapons/c_medkit.mdl"
 SWEP.WorldModel = "models/weapons/w_medkit.mdl"
 
 if CLIENT then
-    SWEP.Slot = 5
+    SWEP.Slot = 0
     SWEP.SlotPos = 2
     SWEP.DrawAmmo = true
     SWEP.DrawCrosshair = true
