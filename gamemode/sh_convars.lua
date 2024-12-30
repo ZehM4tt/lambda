@@ -1,9 +1,5 @@
-if SERVER then
-    AddCSLuaFile()
-end
-
+if SERVER then AddCSLuaFile() end
 GM.ConVars = {}
-
 function GM:RegisterConVar(name, value, flags, helptext, fn)
     if CLIENT and bit.band(flags, FCVAR_REPLICATED) ~= 0 and bit.band(flags, FCVAR_ARCHIVE) ~= 0 then
         DbgPrint("Removing FCVAR_ARCHIVE from " .. name)
@@ -13,7 +9,6 @@ function GM:RegisterConVar(name, value, flags, helptext, fn)
     local prefix = "lambda_"
     local actualName = prefix .. name
     local actualValue = ""
-
     if isbool(value) then
         actualValue = tostring(tonumber(value))
     elseif isstring(value) then
@@ -24,11 +19,7 @@ function GM:RegisterConVar(name, value, flags, helptext, fn)
 
     local convar = CreateConVar(actualName, actualValue, flags, helptext)
     self.ConVars[name] = convar
-
-    if fn ~= nil and isfunction(fn) then
-        cvars.AddChangeCallback(actualName, fn)
-    end
-
+    if fn ~= nil and isfunction(fn) then cvars.AddChangeCallback(actualName, fn) end
     return convar
 end
 
@@ -58,6 +49,7 @@ if CLIENT then
     lambda_auto_jump = GM:RegisterConVar("auto_jump", "0", bit.bor(0, FCVAR_ARCHIVE), "Automatically jump if on ground")
     lambda_gore = GM:RegisterConVar("gore", "1", bit.bor(0, FCVAR_ARCHIVE, FCVAR_USERINFO), "Enable gore")
     lambda_language = GM:RegisterConVar("language", "english", bit.bor(0, FCVAR_ARCHIVE), "Gamemode language")
+    lambda_voice_group = GM:RegisterConVar("voice_group", "auto", bit.bor(0, FCVAR_ARCHIVE, FCVAR_USERINFO), "Voice group")
 end
 
 -- Server --

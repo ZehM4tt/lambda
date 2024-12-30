@@ -22,10 +22,20 @@ local function EstimateModelCategory(ent)
     local seq
     seq = ent:LookupSequence("d3_c17_07_Kidnap")
     if seq ~= nil and seq > 0 then return "combine" end
-    if mdl:lower():find("monk.mdl", 1, true) then return "monk" end
-    if mdl:lower():find("barney.mdl", 1, true) then return "barney" end
-    if mdl:lower():find("alyx.mdl", 1, true) then return "alyx" end
-    if mdl:lower():find("female", 1, true) or ent:LookupBone("ValveBiped.Bip01_R_Pectoral") or ent:LookupBone("ValveBiped.Bip01_L_Pectoral") then return "female" end
+    
+    local mdlLower = mdl:lower()
+    
+    if mdlLower:find("monk.mdl", 1, true) then return "monk" end
+    if mdlLower:find("barney.mdl", 1, true) then return "barney" end
+    if mdlLower:find("alyx.mdl", 1, true) then return "alyx" end
+    if mdlLower:find("gman", 1, true) then return "gman" end
+    if mdlLower:find("kleiner", 1, true) then return "kleiner" end
+    if mdlLower:find("magnusson", 1, true) then return "magnusson" end
+    if mdlLower:find("mossman", 1, true) then return "mossman" end
+    if mdlLower:find("odessa", 1, true) then return "odessa" end
+    if mdlLower:find("breen", 1, true) then return "breen" end
+    if mdlLower:find("eli", 1, true) then return "eli" end
+    if mdlLower:find("female", 1, true) or ent:LookupBone("ValveBiped.Bip01_R_Pectoral") or ent:LookupBone("ValveBiped.Bip01_L_Pectoral") then return "female" end
 
     return "male"
 end
@@ -39,6 +49,13 @@ function ENTITY_META:GetActivator()
 end
 
 function ENTITY_META:GetModelCategory()
+    if self:IsPlayer() then
+        local voiceGroup = self:GetInfo("lambda_voice_group", "auto")
+        if voiceGroup ~= "auto" then
+            return voiceGroup
+        end
+    end
+
     local oldCache = false
     local mdl = self:GetModel()
 

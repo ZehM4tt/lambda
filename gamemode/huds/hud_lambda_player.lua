@@ -67,6 +67,57 @@ function PANEL:Init()
 
     sheetPanel:AddSheet("MODEL", mdlPanel)
 
+    local voicePanel = sheetPanel:Add("DPanel")
+
+    local voiceLabel = voicePanel:Add("DLabel")
+    voiceLabel:Dock(TOP)
+    voiceLabel:SetText("Voice Group")
+    voiceLabel:SetTextColor(Color(255, 255, 255, 255))
+    voiceLabel:SetFont("TargetIDSmall")
+    voiceLabel:SizeToContents()
+    voiceLabel:DockMargin(0, 5, 0, 5)
+
+    local voiceCombo = voicePanel:Add("DComboBox")
+    voiceCombo:Dock(TOP)
+
+    local categories = GAMEMODE:GetAvailableTauntCategories()
+    for _, category in ipairs(categories) do
+        local displayName = category == "auto" and "Auto" or (string.upper(category:sub(1,1)) .. category:sub(2))
+        voiceCombo:AddChoice(displayName, category)
+    end
+
+    voiceCombo:SetTextColor(Color(255, 255, 255, 255))
+    voiceCombo:SetSortItems(false)
+
+    local lastKnownVoiceGroup = ""
+
+    local function UpdateVoiceCombo()
+        local currentVoiceGroup = GetConVar("lambda_voice_group"):GetString()
+        if currentVoiceGroup ~= lastKnownVoiceGroup then
+            for id, data in ipairs(voiceCombo.Data) do
+                if data == currentVoiceGroup then
+                    voiceCombo:ChooseOptionID(id)
+                    lastKnownVoiceGroup = currentVoiceGroup
+                    break
+                end
+            end
+        end
+    end
+
+    voiceCombo.OnSelect = function(_, _, _, data)
+        RunConsoleCommand("lambda_voice_group", data)
+        lastKnownVoiceGroup = data
+    end
+
+    UpdateVoiceCombo()
+
+    -- Update only when the panel becomes visible
+    self.OnVisible = function()
+        UpdateVoiceCombo()
+    end
+
+    sheetPanel:AddSheet("VOICE", voicePanel)
+
     local bgPanel = sheetPanel:Add("DPanel")
 
     local bgList = bgPanel:Add("DPanelList")
