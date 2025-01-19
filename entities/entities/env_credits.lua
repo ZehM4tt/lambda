@@ -36,13 +36,15 @@ function ENT:PreInitialize()
     local path = ""
 
     if GAMEMODE.WorkshopBuild == false then
+        DbgPrint("Path set for non workshop copy")
         path = "gamemodes/Lambda/data/"
     else
+        DbgPrint("Path set for workshop build")
         path = "data_static/"
     end
 
     self:SetupNWVar("CreditsFile", "string", {
-        Default = path .. gametype_name .. "_credits.txt",
+        Default = path .. gametype_name .. "/credits.txt",
         KeyValue = "CreditsFile",
         OnChange = self.CreditsFileChanged
     })
@@ -102,8 +104,8 @@ function ENT:LoadCreditsFile(filePath, gamePath)
         self.Params["color"] = Color(unpack(string.Split(self.Params["color"], " ")))
     end
 
-    DbgPrint("Loaded credits file: " .. gamePath .. ":" .. filePath)
-    self.LastCreditsFile = gamePath .. ":" .. filePath
+    DbgPrint("Loaded credits file: " .. filePath)
+    self.LastCreditsFile = filePath
 
     return true
 end
