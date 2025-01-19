@@ -9,6 +9,7 @@ cp -R backgrounds/ publish/gamemodes/lambda/backgrounds/
 cp -R gamemode/ publish/gamemodes/lambda/gamemode/
 cp -R content/* publish/
 cp -R entities/ publish/gamemodes/lambda/entities/
+cp -R data/ publish/data_static/
 
 cp addon.json publish/addon.json
 cp icon24.png publish/gamemodes/lambda/icon24.png

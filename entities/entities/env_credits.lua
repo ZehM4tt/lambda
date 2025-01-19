@@ -32,10 +32,17 @@ function ENT:PreInitialize()
     BaseClass.PreInitialize(self)
     DbgPrint(self, "PreInitialize")
 
-    local gamepath = GAMEMODE:GetGameTypeData("InternalName") or "hl2"
+    local gametype_name = GAMEMODE:GetGameTypeData("InternalName") or "hl2"
+    local path = ""
+
+    if GAMEMODE.WorkshopBuild == false then
+        path = "gamemodes/Lambda/data/"
+    else
+        path = "data_static/"
+    end
 
     self:SetupNWVar("CreditsFile", "string", {
-        Default = gamepath .. ":scripts/credits.txt",
+        Default = path .. gametype_name .. "_credits.txt",
         KeyValue = "CreditsFile",
         OnChange = self.CreditsFileChanged
     })
@@ -102,18 +109,13 @@ function ENT:LoadCreditsFile(filePath, gamePath)
 end
 
 function ENT:ReloadCreditsFile(f)
-    local splitUp = string.Split(f, ":")
-    local gamePath = "MOD"
-    local filePath
+    local failsafePath = "scripts/credits.txt"
 
-    if #splitUp > 1 then
-        gamePath = splitUp[1]
-        filePath = splitUp[2]
-    else
-        filePath = splitUp[1]
+    if string.len(f) < 2 then
+        f = failsafePath
     end
 
-    return self:LoadCreditsFile(filePath, gamePath)
+    return self:LoadCreditsFile(f, "GAME")
 end
 
 function ENT:CreditsFileChanged(key, oldVal, newVal)
