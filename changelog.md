@@ -3,6 +3,8 @@
 - Fixed: d3_c17_07: Player clip blocking other players at the start of the map.
 - Fixed: d2_coast_10: Fade to black when jumping into the water.
 - Fixed: d2_prison_04: Players can get trapped in the closet where the turret is.
+- Fixed: Incorrect intro logos and credits due to mounting changes.
+- Fixed: Missing changelog in F1 menu if cloned from git.
 
 0.9.27
 - Fixed: Entity inputs/outputs are parsed incorrect.
