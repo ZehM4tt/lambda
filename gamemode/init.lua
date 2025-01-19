@@ -40,6 +40,7 @@ include("sv_weapontracking.lua")
 include("sv_player_pickup.lua")
 include("sv_votefuncs.lua")
 include("sv_damage.lua")
+include("lambda_mightyfoot_bridge.lua")
 util.AddNetworkString("LambdaDeathEvent")
 local DbgPrint = GetLogging("Server")
 local IsValid = IsValid
