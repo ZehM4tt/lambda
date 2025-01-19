@@ -1,17 +1,17 @@
 local PANEL = {}
 local colWHITE = Color(255, 255, 255, 235)
 local colGRAY = Color(155, 155, 155, 175)
-local changelogText = "Unable to read changelog."
-local f = file.Open("gamemodes/lambda/changelog.txt", "r", "GAME")
 
-if f ~= nil then
-    changelogText = f:Read(f:Size())
-    f:Close()
+local gmPath = GM.Folder
+local changelogText = "Unable to read changelog."
+local logFile = file.Find(gmPath .. "/changelog.*", "GAME")
+if logFile[1] then
+    changelogText = file.Read(gmPath .. "/" .. logFile[1], "GAME")
 end
 
 local linkTbl = {
     ["Workshop"] = "https://steamcommunity.com/sharedfiles/filedetails/?id=780244493",
-    ["Github"] = "https://github.com/ZehMatt/lambda",
+    ["Github"] = "https://github.com/GMLambda/Lambda",
     ["Discord"] = "https://discord.gg/K42JUbC"
 }
 
@@ -19,7 +19,7 @@ local iTbl = {
     Title = "LAMBDA CO-OP FRAMEWORK",
     Version = "VERSION: " .. tostring(GM.Version),
     Gametype = "GAMETYPE: ",
-    Authors = "Created by ZehMatt, knoxed, PotcFdk, Amic3r",
+    Authors = "Made by ZehMatt, knoxed, PotcFdk, Amic3r, dounai2333",
     Credits = "Huge thanks to the Garry's Mod team and the Metastruct servers"
 }
 
@@ -31,6 +31,7 @@ local msg = [[
 
 	Stay tuned, there is more to come.
 ]]
+
 local width
 local startW, startH = 15, 10
 local wOffset = 17
@@ -62,7 +63,7 @@ function PANEL_ABOUT:Init()
     pnls.Gametype = self:Add("DLabel")
     pnls.Gametype:SetFont("HudHintTextSmall")
     pnls.Authors = self:Add("DLabel")
-    pnls.Authors:SetFont("TargetIDSmall")
+    pnls.Authors:SetFont("Trebuchet18")
     pnls.Credits = self:Add("DLabel")
 
     for id, pnl in pairs(pnls) do
